@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
+import Link from "next/link";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -26,7 +27,6 @@ const formSchema = z.object({
 });
 
 export default function Login() {
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -34,7 +34,6 @@ export default function Login() {
       password: "",
     },
   });
-
 
   function onSubmit(values: z.infer<typeof formSchema>) {
     console.log(values);
@@ -58,7 +57,9 @@ export default function Login() {
                 name="usernameOrEmal"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="font-semibold">Username Or Email</FormLabel>
+                    <FormLabel className="font-semibold">
+                      Username Or Email
+                    </FormLabel>
                     <FormControl>
                       <Input placeholder="me@mail.com or username" {...field} />
                     </FormControl>
@@ -80,10 +81,17 @@ export default function Login() {
                   </FormItem>
                 )}
               />
-              <Button className="w-full" type="submit">Login</Button>
+              <Button className="w-full" type="submit">
+                Login
+              </Button>
+              <div className="text-center text-sm">
+                Don&apos;t have an account?{" "}
+                <Link href="/register" className="underline underline-offset-4">
+                  Register
+                </Link>
+              </div>
             </form>
           </Form>
-          <Button variant='secondary' className="w-full mt-4" >Register</Button>
         </Card>
       </div>
     </>
