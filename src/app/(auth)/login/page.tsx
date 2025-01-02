@@ -1,50 +1,36 @@
 "use client";
 
+import { loginService } from "@/app/service/auth.service";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { zodResolver } from "@hookform/resolvers/zod";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 import Link from "next/link";
-import React from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
-const formSchema = z.object({
-  usernameOrEmal: z.string().nonempty({
-    message: "This input not empty",
-  }),
-  password: z.string().nonempty({
-    message: "This input not empty",
-  }),
-});
+import React, { useActionState, useEffect } from "react";
 
 export default function Login() {
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      usernameOrEmal: "",
-      password: "",
-    },
-  });
+  const { toast } = useToast()
+  const [state, formAction, isPending] = useActionState(loginService, null);
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values);
-  }
-
+  useEffect(() => {
+    
+    toast({
+          variant: state?.status === 200 ? "default" : "destructive",
+          description: state?.message || "Error",
+        })
+  }, [state])
+  
+  
   return (
     <>
       <div className="flex justify-center items-center min-h-dvh">
         <Card className="w-[350px] p-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <form
+              action={formAction}
+              className="space-y-6"
+            >
               <div className="flex flex-col items-center text-center">
                 <h1 className="text-2xl font-bold">Login</h1>
                 <p className="text-balance text-muted-foreground mt-2">
@@ -52,36 +38,30 @@ export default function Login() {
                 </p>
               </div>
 
-              <FormField
-                control={form.control}
-                name="usernameOrEmal"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold">
+                  <div className="space-y-2">
+                    <Label className="font-semibold">
                       Username Or Email
-                    </FormLabel>
-                    <FormControl>
-                      <Input placeholder="me@mail.com or username" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+                    </Label>
+                      <Input
+                        className="mt-2"
+                        name="emailOrUsername"
+                        id="emailOrUsername"
+                        placeholder="me@mail.com or username"/>
+                  </div>
 
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel className="font-semibold">Password</FormLabel>
-                    <FormControl>
-                      <Input placeholder="your password" {...field} type="password" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button className="w-full" type="submit">
+                  <div className="space-y-2">
+                    <Label className="font-semibold">Password</Label>
+                      <Input
+                        className="mt-2"
+                        name="password"
+                        id="password"
+                        placeholder="your password"
+                        type="password"
+                      />
+                  </div>
+
+              <Button className="w-full" type="submit" disabled={isPending}>
+                { isPending && <Loader2 className="animate-spin" /> }
                 Login
               </Button>
               <div className="text-center text-sm">
@@ -91,7 +71,6 @@ export default function Login() {
                 </Link>
               </div>
             </form>
-          </Form>
         </Card>
       </div>
     </>

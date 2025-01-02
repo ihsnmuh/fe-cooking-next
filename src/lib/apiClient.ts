@@ -4,6 +4,7 @@ interface Response<T> {
   message: string;
   error: string;
   data: T | null;
+  status: number | null | unknown;
 }
 
 export class ApiClient {
@@ -17,8 +18,12 @@ export class ApiClient {
     const storeCookies = await cookies();
     const token = storeCookies.get("cooking-token")?.value;
 
+    if (!token) {
+      return null;
+    }
+
     return {
-      Autorization: `Bearer ${token}`,
+      Authorization: `Bearer ${token}`,
     };
   }
 
@@ -27,14 +32,17 @@ export class ApiClient {
       data: null,
       message: "",
       error: "",
+      status: 200,
     };
 
     try {
       const response = await fetch(`${this.baseUrl}${path}`, {
-        headers: await this.getHeaders(),
+        headers: {...(await this.getHeaders())},
       });
       const data = await response.json();
+      
       result.data = data;
+      result.status = response.status;
       result.message = data.message;
     } catch (error) {
       if (error instanceof Error) {
@@ -52,10 +60,12 @@ export class ApiClient {
     data: Record<string, unknown>,
     isFormData: boolean = false
   ): Promise<Response<T>> {
+
     const result = {
       data: null,
       message: "",
       error: "",
+      status: 200,
     };
 
     // bodypayload can be JSON or FormData
@@ -68,22 +78,27 @@ export class ApiClient {
       }
 
       bodyPayload = formData;
+    } else {
+      bodyPayload = JSON.stringify(data);
     }
 
-    if (!isFormData) bodyPayload = JSON.stringify(data);
-
     try {
+      
       const response = await fetch(`${this.baseUrl}${path}`, {
         method: "POST",
         headers: {
-          "Content-Type": "application/json",
+          ...(isFormData ? {} : { "Content-Type": "application/json" }),
           ...(await this.getHeaders()),
         },
         body: bodyPayload,
       });
+
       const data = await response.json();
+      
       result.data = data;
+      result.status = response.status;
       result.message = data.message;
+
     } catch (error) {
       if (error instanceof Error) {
         result.error = error.message;
