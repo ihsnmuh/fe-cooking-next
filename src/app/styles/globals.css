@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-jakarta-sans);
 }
 
 @layer base {
@@ -68,5 +68,10 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+
+  .layout {
+    /* 1280px */
+    @apply mx-auto w-full px-4 sm:px-8 max-w-6xl;
   }
 }

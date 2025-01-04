@@ -92,9 +92,7 @@ export class ApiClient {
 				body: bodyPayload,
 			});
 			
-			console.log("🚀 ~ ApiClient ~ response:", response)
 			const data = await response.json();
-			console.log("🚀 ~ ApiClient ~ data:", data)
 
 			result.data = data.data;
 			result.code = data.code;
