@@ -13,14 +13,17 @@ import React, { useActionState, useEffect } from "react";
 export default function Login() {
   const { toast } = useToast()
   const [state, formAction, isPending] = useActionState(loginService, null);
-
+  
   useEffect(() => {
     
-    toast({
-          variant: state?.status === 200 ? "default" : "destructive",
-          description: state?.message || "Error",
-        })
-  }, [state])
+    if (state?.message) {
+      toast({
+        variant: state?.code === 201 ? "default" : "destructive",
+        description: state?.message || "Error",
+      })
+    }
+    
+  }, [state, toast])
   
   
   return (

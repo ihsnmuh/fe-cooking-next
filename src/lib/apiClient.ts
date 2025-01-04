@@ -1,112 +1,117 @@
+import { IResponseAPI } from "@/types/interfaces/responseAPI";
 import { cookies } from "next/headers";
 
-interface Response<T> {
-  message: string;
-  error: string;
-  data: T | null;
-  status: number | null | unknown;
-}
-
 export class ApiClient {
-  private baseUrl: string;
+	private baseUrl: string;
 
-  constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
-  }
+	constructor(baseUrl: string) {
+		this.baseUrl = baseUrl;
+	}
 
-  private async getHeaders() {
-    const storeCookies = await cookies();
-    const token = storeCookies.get("cooking-token")?.value;
+	private async getHeaders() {
+		const storeCookies = await cookies();
+		const token = storeCookies.get("cooking-token")?.value;
 
-    if (!token) {
-      return null;
-    }
+		if (!token) {
+			return null;
+		}
 
-    return {
-      Authorization: `Bearer ${token}`,
-    };
-  }
+		return {
+			Authorization: `Bearer ${token}`,
+		};
+	}
 
-  async get<T>(path: string): Promise<Response<T>> {
-    const result = {
-      data: null,
-      message: "",
-      error: "",
-      status: 200,
-    };
+	async get<T>(path: string): Promise<IResponseAPI<T>> {
+		const result = {
+			data: null,
+			message: "",
+			error: "",
+			status: "",
+			code: 200,
+		};
 
-    try {
-      const response = await fetch(`${this.baseUrl}${path}`, {
-        headers: {...(await this.getHeaders())},
-      });
-      const data = await response.json();
-      
-      result.data = data;
-      result.status = response.status;
-      result.message = data.message;
-    } catch (error) {
-      if (error instanceof Error) {
-        result.error = error.message;
-      } else {
-        result.error = "Unknown error";
-      }
-    }
+		try {
+			const response = await fetch(`${this.baseUrl}${path}`, {
+				headers: { ...(await this.getHeaders()) },
+			});
+			const data = await response.json();
 
-    return result;
-  }
+			result.data = data.data;
+			result.code = data.code;
+			result.status = data.status;
+			result.message = data.message;
+		} catch (error) {
+			if (error instanceof Error) {
+				result.code = 500;
+				result.status = "error";
+				result.error = error.message;
+			} else {
+				result.code = 500;
+				result.status = "error";
+				result.error = "Unknown error";
+			}
+		}
 
-  async post<T>(
-    path: string,
-    data: Record<string, unknown>,
-    isFormData: boolean = false
-  ): Promise<Response<T>> {
+		return result;
+	}
 
-    const result = {
-      data: null,
-      message: "",
-      error: "",
-      status: 200,
-    };
+	async post<T>(
+		path: string,
+		data: Record<string, unknown>,
+		isFormData: boolean,
+	): Promise<IResponseAPI<T>> {
+		const result = {
+			data: null,
+			message: "",
+			error: "",
+			status: "",
+			code: 200,
+		};
 
-    // bodypayload can be JSON or FormData
-    let bodyPayload = null;
+		// bodypayload can be JSON or FormData
+		let bodyPayload = null;
 
-    if (isFormData && data) {
-      const formData = new FormData();
-      for (const key in data) {
-        formData.append(key, data[key] as string);
-      }
+		if (isFormData && data) {
+			const formData = new FormData();
+			for (const key in data) {
+				formData.append(key, data[key] as string);
+			}
 
-      bodyPayload = formData;
-    } else {
-      bodyPayload = JSON.stringify(data);
-    }
+			bodyPayload = formData;
+		} else {
+			bodyPayload = JSON.stringify(data);
+		}
 
-    try {
-      
-      const response = await fetch(`${this.baseUrl}${path}`, {
-        method: "POST",
-        headers: {
-          ...(isFormData ? {} : { "Content-Type": "application/json" }),
-          ...(await this.getHeaders()),
-        },
-        body: bodyPayload,
-      });
+		try {
+			const response = await fetch(`${this.baseUrl}${path}`, {
+				method: "POST",
+				headers: {
+					...(isFormData ? {} : { "Content-Type": "application/json" }),
+					...(await this.getHeaders()),
+				},
+				body: bodyPayload,
+			});
+			
+			console.log("🚀 ~ ApiClient ~ response:", response)
+			const data = await response.json();
+			console.log("🚀 ~ ApiClient ~ data:", data)
 
-      const data = await response.json();
-      
-      result.data = data;
-      result.status = response.status;
-      result.message = data.message;
+			result.data = data.data;
+			result.code = data.code;
+			result.status = data.status;
+			result.message = data.message;
+		} catch (error) {
+			if (error instanceof Error) {
+				result.code = 500;
+				result.status = "error";
+				result.error = error.message;
+			} else {
+				result.code = 500;
+				result.status = "error";
+				result.error = "Unknown error";
+			}
+		}
 
-    } catch (error) {
-      if (error instanceof Error) {
-        result.error = error.message;
-      } else {
-        result.error = "Unknown error";
-      }
-    }
-
-    return result;
-  }
+		return result;
+	}
 }
